@@ -283,11 +283,11 @@ class TemplateLM(LM):
     def eot_token_id(self):
         pass
 
-    @property
-    @abc.abstractmethod
-    def prefix_token_id(self):
-        # it is used as prefix for loglikelihood
-        pass
+    # @property
+    # @abc.abstractmethod
+    # def prefix_token_id(self):
+    #     # it is used as prefix for loglikelihood
+    #     pass
 
     @abc.abstractmethod
     def tok_encode(self, string: str, **kwargs):
@@ -319,7 +319,7 @@ class TemplateLM(LM):
             if context == "":
                 # BOS or EOS as context
                 context_enc, continuation_enc = (
-                    [self.prefix_token_id],
+                    [self.eot_token_id],
                     self.tok_encode(continuation),
                 )
             else:
