@@ -109,7 +109,6 @@ class HFLM(TemplateLM):
         # PEFT and quantization options
         peft: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
-        prefix_token_id: Optional[int] = None,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -341,11 +340,6 @@ class HFLM(TemplateLM):
             self._rank = 0
             self._world_size = 1
 
-        self.custom_prefix_token_id = prefix_token_id
-        eval_logger.info(
-            f"Loglikelihood prefix token id used in evaluation: {self.prefix_token_id}"
-        )
-
     @property
     def config(self):
         # return the associated transformers.AutoConfig for the given pretrained model.
@@ -362,15 +356,6 @@ class HFLM(TemplateLM):
     @property
     def eot_token_id(self):
         # we use EOT because end of *text* is more accurate for what we're doing than end of *sentence*
-        return self.tokenizer.eos_token_id
-
-    @property
-    def prefix_token_id(self):
-        # it is used as prefix for loglikelihood
-        if self.custom_prefix_token_id is not None:
-            return self.custom_prefix_token_id
-        if self.tokenizer.bos_token_id is not None:
-            return self.tokenizer.bos_token_id
         return self.tokenizer.eos_token_id
 
     @property
@@ -826,7 +811,7 @@ class HFLM(TemplateLM):
                     utils.make_disjoint_window,
                     utils.get_rolling_token_windows(
                         token_list=self.tok_encode(string),
-                        prefix_token=self.prefix_token_id,
+                        prefix_token=self.eot_token_id,
                         max_seq_len=self.max_length,
                         context_len=1,
                     ),
